@@ -1,7 +1,8 @@
-require("dotenv").config();
 const fetch = require("node-fetch");
 
-const sessions = {};
+// Используем Vercel KV
+const { kv } = require("@vercel/kv");
+
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 
@@ -13,30 +14,46 @@ module.exports = async (req, res) => {
   const text = message?.text;
   const chat_id = message?.chat?.id;
 
-  const sendMessage = (text, keyboard) =>
-    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id, text, reply_markup: keyboard }),
-    });
+  if (!message || !text || !chat_id) {
+    return res.status(200).send("No message to process.");
+  }
 
-  const session = sessions[chat_id] || {};
+  const sendMessage = async (text, keyboard) => {
+    try {
+      const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id, text, reply_markup: keyboard, parse_mode: "Markdown" }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Telegram API error:", data);
+      }
+    } catch (err) {
+      console.error("Ошибка отправки сообщения в Telegram:", err);
+    }
+  };
 
   if (text === "/start") {
-    sessions[chat_id] = {};
-    return await sendMessage("👋 Привет! Выбери тему для теста:", {
+    await kv.del(`session:${chat_id}`);
+    await sendMessage("👋 Привет! Выбери тему для теста:", {
       keyboard: [
         [{ text: "История" }, { text: "Математика" }],
         [{ text: "Английский" }]
       ],
       resize_keyboard: true,
-    }).then(() => res.send("OK"));
+    });
+    return res.send("OK");
   }
 
-  if (session.correctAnswer) {
+  const sessionKey = `session:${chat_id}`;
+  const session = await kv.get(sessionKey);
+
+  if (session?.correctAnswer) {
     const userAnswer = text.trim().toUpperCase();
     const correct = session.correctAnswer.toUpperCase();
-    delete sessions[chat_id].correctAnswer;
+    await kv.del(sessionKey); // очищаем
 
     if (userAnswer === correct) {
       await sendMessage("✅ Правильно! Хочешь ещё вопрос?", {
@@ -72,7 +89,14 @@ D) ...
 Правильный ответ: X
     `.trim();
 
-    const reply = await askDeepSeek(prompt);
+    let reply;
+    try {
+      reply = await askDeepSeek(prompt);
+    } catch (error) {
+      console.error("Ошибка DeepSeek:", error);
+      await sendMessage("⚠️ Ошибка генерации вопроса. Попробуй позже.");
+      return res.send("OK");
+    }
 
     const match = reply.match(/Правильный ответ:\s*([A-D])/i);
     const correctAnswer = match ? match[1].trim().toUpperCase() : null;
@@ -84,10 +108,8 @@ D) ...
 
     const questionWithoutAnswer = reply.replace(/Правильный ответ:\s*[A-D]/i, "").trim();
 
-    sessions[chat_id] = { correctAnswer };
-    await sendMessage(`📚 Вопрос по теме *${topic}*:\n\n${questionWithoutAnswer}`, {
-      parse_mode: "Markdown",
-    });
+    await kv.set(sessionKey, { correctAnswer });
+    await sendMessage(`📚 Вопрос по теме *${topic}*:\n\n${questionWithoutAnswer}`);
 
     return res.send("OK");
   }
@@ -115,7 +137,7 @@ async function askDeepSeek(prompt) {
 
   if (!res.ok) {
     console.error("DeepSeek API error:", data);
-    return "Ошибка генерации: " + (data.error?.message || "неизвестная ошибка");
+    throw new Error(data.error?.message || "Unknown DeepSeek error");
   }
 
   return data.choices?.[0]?.message?.content || "Ошибка генерации.";
