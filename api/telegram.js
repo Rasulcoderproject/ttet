@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fetch = require("node-fetch");
 
 const sessions = {};
@@ -13,7 +14,7 @@ module.exports = async (req, res) => {
   const chat_id = message?.chat?.id;
 
   const sendMessage = (text, keyboard) =>
-    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    fetch(https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id, text, reply_markup: keyboard }),
@@ -21,7 +22,6 @@ module.exports = async (req, res) => {
 
   const session = sessions[chat_id] || {};
 
-  // Старт
   if (text === "/start") {
     sessions[chat_id] = {};
     return await sendMessage("👋 Привет! Выбери тему для теста:", {
@@ -33,7 +33,6 @@ module.exports = async (req, res) => {
     }).then(() => res.send("OK"));
   }
 
-  // Проверка ответа пользователя
   if (session.correctAnswer) {
     const userAnswer = text.trim().toUpperCase();
     const correct = session.correctAnswer.toUpperCase();
@@ -48,7 +47,7 @@ module.exports = async (req, res) => {
         resize_keyboard: true,
       });
     } else {
-      await sendMessage(`❌ Неправильно. Правильный ответ: ${correct}\nПопробуешь ещё?`, {
+      await sendMessage(❌ Неправильно. Правильный ответ: ${correct}\nПопробуешь ещё?, {
         keyboard: [
           [{ text: "История" }, { text: "Математика" }],
           [{ text: "Английский" }]
@@ -60,21 +59,20 @@ module.exports = async (req, res) => {
     return res.send("OK");
   }
 
-  // Выбор темы
   if (["История", "Математика", "Английский"].includes(text)) {
     const topic = text;
-    const prompt = `
+    const prompt = 
 Задай один тестовый вопрос с 4 вариантами ответа по теме "${topic}".
-Формат ответа:
+Формат:
 Вопрос: ...
 A) ...
 B) ...
 C) ...
 D) ...
-Правильный ответ: ... (например: A, B и т.д.)
-    `.trim();
+Правильный ответ: X
+    .trim();
 
-    const reply = await askGPT(prompt);
+    const reply = await askDeepSeek(prompt);
 
     const match = reply.match(/Правильный ответ:\s*([A-D])/i);
     const correctAnswer = match ? match[1].trim().toUpperCase() : null;
@@ -87,28 +85,27 @@ D) ...
     const questionWithoutAnswer = reply.replace(/Правильный ответ:\s*[A-D]/i, "").trim();
 
     sessions[chat_id] = { correctAnswer };
-    await sendMessage(`📚 Вопрос по теме *${topic}*:\n\n${questionWithoutAnswer}`, {
+    await sendMessage(📚 Вопрос по теме *${topic}*:\n\n${questionWithoutAnswer}, {
       parse_mode: "Markdown",
     });
 
     return res.send("OK");
   }
 
-  // Неизвестная команда
   await sendMessage("⚠️ Напиши /start, чтобы начать сначала.");
   return res.send("OK");
 };
 
-// GPT через OpenRouter
-async function askGPT(prompt) {
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+// GPT через DeepSeek API
+async function askDeepSeek(prompt) {
+  const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+      Authorization: Bearer ${DEEPSEEK_API_KEY},
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "openai/gpt-3.5-turbo",
+      model: "deepseek-chat",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7
     })
@@ -117,7 +114,7 @@ async function askGPT(prompt) {
   const data = await res.json();
 
   if (!res.ok) {
-    console.error("OpenRouter API error:", data);
+    console.error("DeepSeek API error:", data);
     return "Ошибка генерации: " + (data.error?.message || "неизвестная ошибка");
   }
 
