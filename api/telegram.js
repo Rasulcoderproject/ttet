@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 const fetch = require("node-fetch");
 
 const sessions = {};
@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
   const chat_id = message?.chat?.id;
 
   const sendMessage = (text, keyboard) =>
-    fetch(https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage, {
+    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id, text, reply_markup: keyboard }),
@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
         resize_keyboard: true,
       });
     } else {
-      await sendMessage(❌ Неправильно. Правильный ответ: ${correct}\nПопробуешь ещё?, {
+      await sendMessage(`❌ Неправильно. Правильный ответ: ${correct}\nПопробуешь ещё?`, {
         keyboard: [
           [{ text: "История" }, { text: "Математика" }],
           [{ text: "Английский" }]
@@ -61,7 +61,7 @@ module.exports = async (req, res) => {
 
   if (["История", "Математика", "Английский"].includes(text)) {
     const topic = text;
-    const prompt = 
+    const prompt = `
 Задай один тестовый вопрос с 4 вариантами ответа по теме "${topic}".
 Формат:
 Вопрос: ...
@@ -70,7 +70,7 @@ B) ...
 C) ...
 D) ...
 Правильный ответ: X
-    .trim();
+    `.trim();
 
     const reply = await askDeepSeek(prompt);
 
@@ -85,7 +85,7 @@ D) ...
     const questionWithoutAnswer = reply.replace(/Правильный ответ:\s*[A-D]/i, "").trim();
 
     sessions[chat_id] = { correctAnswer };
-    await sendMessage(📚 Вопрос по теме *${topic}*:\n\n${questionWithoutAnswer}, {
+    await sendMessage(`📚 Вопрос по теме *${topic}*:\n\n${questionWithoutAnswer}`, {
       parse_mode: "Markdown",
     });
 
@@ -101,7 +101,7 @@ async function askDeepSeek(prompt) {
   const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: Bearer ${DEEPSEEK_API_KEY},
+      Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
