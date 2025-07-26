@@ -1,7 +1,6 @@
 const fetch = require("node-fetch");
 
-// Используем Vercel KV
-const { kv } = require("@vercel/kv");
+
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
