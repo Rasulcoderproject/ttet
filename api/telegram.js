@@ -1,5 +1,3 @@
-
-require('dotenv').config();
 const fetch = require("node-fetch");
 
 const sessions = {};
@@ -23,6 +21,7 @@ module.exports = async (req, res) => {
 
   const session = sessions[chat_id] || {};
 
+  // Старт
   if (text === "/start") {
     sessions[chat_id] = {};
     return await sendMessage("👋 Привет! Выбери тему для теста:", {
@@ -34,6 +33,7 @@ module.exports = async (req, res) => {
     }).then(() => res.send("OK"));
   }
 
+  // Проверка ответа пользователя
   if (session.correctAnswer) {
     const userAnswer = text.trim().toUpperCase();
     const correct = session.correctAnswer.toUpperCase();
@@ -60,20 +60,21 @@ module.exports = async (req, res) => {
     return res.send("OK");
   }
 
+  // Выбор темы
   if (["История", "Математика", "Английский"].includes(text)) {
     const topic = text;
     const prompt = `
 Задай один тестовый вопрос с 4 вариантами ответа по теме "${topic}".
-Формат:
+Формат ответа:
 Вопрос: ...
 A) ...
 B) ...
 C) ...
 D) ...
-Правильный ответ: X
+Правильный ответ: ... (например: A, B и т.д.)
     `.trim();
 
-    const reply = await askDeepSeek(prompt);
+    const reply = await askGPT(prompt);
 
     const match = reply.match(/Правильный ответ:\s*([A-D])/i);
     const correctAnswer = match ? match[1].trim().toUpperCase() : null;
@@ -93,20 +94,21 @@ D) ...
     return res.send("OK");
   }
 
+  // Неизвестная команда
   await sendMessage("⚠️ Напиши /start, чтобы начать сначала.");
   return res.send("OK");
 };
 
-// GPT через DeepSeek API
-async function askDeepSeek(prompt) {
-  const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
+// GPT через OpenRouter
+async function askGPT(prompt) {
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "deepseek-chat",
+      model: "openai/gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7
     })
@@ -115,7 +117,7 @@ async function askDeepSeek(prompt) {
   const data = await res.json();
 
   if (!res.ok) {
-    console.error("DeepSeek API error:", data);
+    console.error("OpenRouter API error:", data);
     return "Ошибка генерации: " + (data.error?.message || "неизвестная ошибка");
   }
 
