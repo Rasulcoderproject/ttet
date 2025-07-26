@@ -1,8 +1,14 @@
+
 {
-  "name": "telegram-bot-vercel-nodejs",
+  "name": "telegram-deepseek-bot",
   "version": "1.0.0",
+  "description": "Telegram бот с генерацией тестов через DeepSeek",
+  "main": "telegram.js",
+  "scripts": {
+    "start": "node telegram.js"
+  },
   "dependencies": {
-    "node-fetch": "^2.6.1",
-    "cheerio": "^1.0.0-rc.12"
+    "dotenv": "^16.3.1",
+    "node-fetch": "^2.6.9"
   }
 }
