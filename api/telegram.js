@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.FEEDBACK_EMAIL_PASS
   }
 });
-  const session = sessions[chat_id] || {};
+  
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
@@ -21,6 +21,7 @@ module.exports = async (req, res) => {
   const body = req.body;
   const message = body.message;
   const text = message?.text;
+  const session = sessions[chat_id] || {};
   const chat_id = message?.chat?.id;
 
   const sendMessage = (text, keyboard) =>
