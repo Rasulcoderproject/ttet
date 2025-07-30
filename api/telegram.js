@@ -92,9 +92,10 @@ module.exports = async (req, res) => {
 
   try {
     await sendMessage("❌ Ошибка при отправке. Попробуй позже.");
-  } catch (telegramError) {
-    console.error("❌ Ошибка при отправке сообщения в Telegram:", telegramError);
-  }
+  } catch (err) {
+  console.error("❌ Ошибка при отправке письма:", err); // ← покажет, в чём дело
+  await sendMessage("❌ Ошибка при отправке. Попробуй позже.");
+}
 }
       return res.send("OK");
     }
