@@ -22,6 +22,8 @@ module.exports = async (req, res) => {
     });
 
   const session = sessions[chat_id] || {};
+  sessions[chat_id] = session;
+  
 
   // Функция обновления статистики
   function updateStats(chat_id, game, win) {
@@ -33,25 +35,7 @@ module.exports = async (req, res) => {
   }
 
 
-
-
-
-
-
-  // /start
-  if (text === "/start") {
-    sessions[chat_id] = {};
-    return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
-      keyboard: [
-        [{ text: "История" }, { text: "Математика" }],
-        [{ text: "Английский" }, { text: "Игры 🎲" }],
-        [{ text: "/form" }, { text: "/stats" }]
-      ],
-      resize_keyboard: true,
-    }).then(() => res.send("OK"));
-  }
-
-
+ 
 
 
   // ========== АНКЕТА ==========
@@ -95,6 +79,24 @@ module.exports = async (req, res) => {
 
     return res.send("OK");
   }
+
+
+
+
+  // /start
+  if (text === "/start") {
+    sessions[chat_id] = {};
+    return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
+      keyboard: [
+        [{ text: "История" }, { text: "Математика" }],
+        [{ text: "Английский" }, { text: "Игры 🎲" }],
+        [{ text: "/form" }, { text: "/stats" }]
+      ],
+      resize_keyboard: true,
+    }).then(() => res.send("OK"));
+  }
+
+
 
 
 
