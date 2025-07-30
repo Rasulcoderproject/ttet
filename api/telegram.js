@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.FEEDBACK_EMAIL_PASS
   }
 });
-
+  const session = sessions[chat_id] || {};
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
       body: JSON.stringify({ chat_id, text, reply_markup: keyboard }),
     });
 
- const session = sessions[chat_id] || {};
+
 
   // Функция обновления статистики
   function updateStats(chat_id, game, win) {
