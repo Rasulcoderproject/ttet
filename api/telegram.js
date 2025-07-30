@@ -37,49 +37,54 @@ module.exports = async (req, res) => {
 
  
 
-
-  // ========== АНКЕТА ==========
-  if (text === "/form") {
-    sessions[chat_id] = { formStep: "name", formData: {} };
-    await sendMessage("📋 Как тебя зовут?");
-    return res.send("OK");
+ if (text === "Анкета 📝") {
+    session.step = "name";
+    session.data = {};
+    await sendMessage("Как тебя зовут?");
+    return res.end("OK");
   }
 
-  if (session.formStep) {
-    const formData = session.formData || {};
+  // ==== Обработка шагов ====
+  if (session.step === "name") {
+    session.data.name = text;
+    session.step = "age";
+    await sendMessage("Сколько тебе лет?");
+    return res.end("OK");
+  }
 
-    if (session.formStep === "name") {
-      formData.name = text.trim();
-      session.formStep = "age";
-      await sendMessage("Сколько тебе лет?");
-    } else if (session.formStep === "age") {
-      formData.age = text.trim();
-      session.formStep = "comment";
-      await sendMessage("Оставь комментарий:");
-    } else if (session.formStep === "comment") {
-      formData.comment = text.trim();
-      
+  if (session.step === "age") {
+    session.data.age = text;
+    session.step = "comment";
+    await sendMessage("Оставь комментарий:");
+    return res.end("OK");
+  }
 
-      const mailText = `📨 Новая анкета:\n\nИмя: ${formData.name}\nВозраст: ${formData.age}\nКомментарий: ${formData.comment}`;
+  if (session.step === "comment") {
+    session.data.comment = text;
+    session.step = null;
 
-      try {
-        await sendMail({
-          subject: "Новая анкета из Telegram",
-          text: mailText,
-        });
-        await sendMessage("✅ Спасибо! Данные отправлены.");
-      } catch (e) {
-        console.error("Ошибка при отправке письма:", e);
-        await sendMessage("⚠️ Ошибка при отправке письма.");
-      }
+    const { name, age, comment } = session.data;
+    const emailText = `Имя: ${name}\nВозраст: ${age}\nКомментарий: ${comment}`;
 
-      delete sessions[chat_id].formStep;
-      delete sessions[chat_id].formData;
+    try {
+      await sendMail({
+        subject: "📨 Новая анкета от Telegram-пользователя",
+        text: emailText,
+      });
+      await sendMessage("✅ Спасибо! Анкета отправлена на почту.");
+    } catch (err) {
+      console.error(err);
+      await sendMessage("⚠️ Ошибка при отправке письма.");
     }
 
-    return res.send("OK");
+    delete sessions[chat_id];
+    return res.end("OK");
   }
 
+  // ==== Неизвестная команда ====
+  await sendMessage("Напиши /start чтобы начать.");
+  return res.end("OK");
+};
 
 
 
