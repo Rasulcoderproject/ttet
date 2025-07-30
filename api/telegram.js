@@ -124,6 +124,30 @@ module.exports = async (req, res) => {
     }).then(() => res.send("OK"));
   }
 
+
+
+
+// 📬 Отправка письма
+async function sendMail({ subject, text }) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: EMAIL_USER,
+      pass: EMAIL_PASS,
+    },
+  });
+
+  return transporter.sendMail({
+    from: EMAIL_USER,
+    to: ADMIN_EMAIL,
+    subject,
+    text,
+  });
+}
+
+
+
+
   // Проверка ответа для тестов (История, Математика, Английский)
   if (session.correctAnswer) {
     const userAnswer = text.trim().toUpperCase();
