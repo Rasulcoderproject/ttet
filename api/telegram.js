@@ -1,7 +1,7 @@
 const fetch = require("node-fetch");
 const nodemailer = require("nodemailer");
 
-const sessions = {};
+const sessions = {}; // Для отслеживания шагов пользователей
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.FEEDBACK_EMAIL,
-    pass: process.env.FEEDBACK_EMAIL_PASS,
+    pass: process.env.FEEDBACK_EMAIL_PASS, // Используй app-password, если включена двухфакторка
   },
 });
 
@@ -33,21 +33,27 @@ module.exports = async (req, res) => {
       });
 
       const data = await response.json();
-      if (!data.ok) console.error("Telegram error:", data);
+      if (!data.ok) {
+        console.error("Telegram API Error:", data);
+      }
     } catch (err) {
-      console.error("sendMessage error:", err);
+      console.error("Error sending message to Telegram:", err);
     }
   }
 
-  // === Начало: команда /feedback ===
+  // === Начало комментария ===
   if (text === "/feedback" || text === "Оставить комментарий") {
     sessions[chat_id] = { step: "name" };
     await sendMessage("👤 Как тебя зовут?");
     return res.send("OK");
   }
 
-  // === Логика сбора данных ===
+  // === Пошаговый сбор комментария ===
   if (session.step === "name") {
+    if (text.length > 50) {
+      await sendMessage("⚠️ Имя слишком длинное. Введи покороче.");
+      return res.send("OK");
+    }
     session.name = text;
     session.step = "age";
     await sendMessage("📅 Сколько тебе лет?");
@@ -59,7 +65,6 @@ module.exports = async (req, res) => {
       await sendMessage("⚠️ Укажи возраст числом.");
       return res.send("OK");
     }
-
     session.age = text;
     session.step = "comment";
     await sendMessage("✍️ Напиши свой комментарий:");
@@ -67,9 +72,14 @@ module.exports = async (req, res) => {
   }
 
   if (session.step === "comment") {
+    if (text.length > 1000) {
+      await sendMessage("⚠️ Комментарий слишком длинный. Укороти, пожалуйста.");
+      return res.send("OK");
+    }
+
     const { name, age } = session;
     const comment = text;
-    delete sessions[chat_id]; // Завершили сессию
+    delete sessions[chat_id]; // Очистка сессии
 
     try {
       await transporter.sendMail({
@@ -79,16 +89,17 @@ module.exports = async (req, res) => {
         text: `Имя: ${name}\nВозраст: ${age}\nКомментарий:\n${comment}`,
       });
 
+      console.log("✅ Письмо успешно отправлено.");
       await sendMessage("✅ Спасибо! Твой комментарий отправлен.");
     } catch (error) {
-      console.error("Ошибка отправки письма:", error);
+      console.error("❌ Ошибка отправки письма:", error);
       await sendMessage("❌ Ошибка при отправке. Попробуй позже.");
     }
 
     return res.send("OK");
   }
 
-  // Неизвестная команда
-  await sendMessage("Напиши /feedback или нажми «Оставить комментарий».");
+  // === Ответ по умолчанию ===
+  await sendMessage("Напиши /feedback или нажми «Оставить комментарий», чтобы оставить отзыв.");
   return res.send("OK");
 };
