@@ -38,7 +38,7 @@ module.exports = async (req, res) => {
     return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
       keyboard: [
         [{ text: "История" }, { text: "Математика" }],
-        [{ text: "Английский" }, { text: "Игры 🎲" }]
+        [{ text: "Английский" }, { text: "Игры 🎲" },{ text: "/stats" }]
       ],
       resize_keyboard: true,
     }).then(() => res.send("OK"));
