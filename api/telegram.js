@@ -40,6 +40,40 @@ module.exports = async (req, res) => {
 
 
 
+  // /start
+  if (text === "/start") {
+    sessions[chat_id] = {};
+    return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
+      keyboard: [
+        [{ text: "История" }, { text: "Математика" }],
+        [{ text: "Английский" }, { text: "Игры 🎲" }]
+        [{ text: "/form" }, { text: "/stats" }]
+        
+      ],
+      resize_keyboard: true,
+    }).then(() => res.send("OK"));
+  }
+
+  // /stats - показать статистику
+  if (text === "/stats") {
+    const userStats = stats[chat_id];
+    if (!userStats) {
+      await sendMessage("Ты ещё не играл ни в одну игру.");
+      return res.send("OK");
+    }
+
+    let msg = "📊 Твоя статистика:\n\n";
+    for (const game in userStats) {
+      const s = userStats[game];
+      msg += `• ${game}: сыграно ${s.played}, побед ${s.wins}\n`;
+    }
+    await sendMessage(msg);
+    return res.send("OK");
+  }
+
+
+
+
 
 
 
