@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const nodemailer = require("nodemailer");
+
 const sessions = {};
 const stats = {}; // Статистика по пользователям
 
