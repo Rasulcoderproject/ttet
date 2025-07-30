@@ -25,13 +25,23 @@ module.exports = async (req, res) => {
   const chat_id = message?.chat?.id;
   const session = sessions[chat_id] || {};
 
-  const sendMessage = (text, keyboard) =>
-    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+const sendMessage = async (text, keyboard) => {
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id, text, reply_markup: keyboard }),
     });
 
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      console.error("Ошибка Telegram API:", data);
+    }
+    return data;
+  } catch (err) {
+    console.error("Ошибка при fetch в sendMessage:", err);
+  }
+};
 
 
   // Функция обновления статистики
