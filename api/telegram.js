@@ -6,6 +6,15 @@ const stats = {}; // Статистика по пользователям
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.FEEDBACK_EMAIL,
+    pass: process.env.FEEDBACK_EMAIL_PASS
+  }
+});
+
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
