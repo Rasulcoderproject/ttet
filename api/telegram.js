@@ -32,6 +32,68 @@ module.exports = async (req, res) => {
     if (win) stats[chat_id][game].wins++;
   }
 
+  // ===== Обработка комментария с именем и возрастом =====
+  if (text === "Оставить комментарий" || text === "/feedback") {
+    sessions[chat_id] = { feedbackStep: "awaitingName" };
+    await sendMessage("👤 Как тебя зовут?");
+    return res.send("OK");
+  }
+
+  const feedbackSession = sessions[chat_id];
+  if (feedbackSession?.feedbackStep) {
+    if (feedbackSession.feedbackStep === "awaitingName") {
+      feedbackSession.name = text.trim();
+      feedbackSession.feedbackStep = "awaitingAge";
+      await sendMessage("📅 Сколько тебе лет?");
+      return res.send("OK");
+    }
+
+    if (feedbackSession.feedbackStep === "awaitingAge") {
+      const age = text.trim();
+      if (!/^\d{1,3}$/.test(age)) {
+        await sendMessage("⚠️ Пожалуйста, укажи возраст числом.");
+        return res.send("OK");
+      }
+      feedbackSession.age = age;
+      feedbackSession.feedbackStep = "awaitingComment";
+      await sendMessage("✍️ Теперь напиши свой комментарий:");
+      return res.send("OK");
+    }
+
+    if (feedbackSession.feedbackStep === "awaitingComment") {
+      const comment = text.trim();
+      const { name, age } = feedbackSession;
+      delete sessions[chat_id];
+
+      try {
+        await transporter.sendMail({
+          from: `"Feedback Bot" <${process.env.FEEDBACK_EMAIL}>`,
+          to: process.env.FEEDBACK_RECEIVER || process.env.FEEDBACK_EMAIL,
+          subject: `Комментарий от ${name} (${age} лет) — Telegram ID: ${chat_id}`,
+          text: `Имя: ${name}\nВозраст: ${age}\nID чата: ${chat_id}\n\nКомментарий:\n${comment}`
+        });
+
+        await sendMessage("✅ Спасибо! Твой комментарий отправлен.");
+      } catch (err) {
+        console.error("Ошибка при отправке письма:", err);
+        await sendMessage("❌ Ошибка при отправке. Попробуй позже.");
+      }
+
+      return res.send("OK");
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
   // /start
   if (text === "/start") {
     sessions[chat_id] = {};
