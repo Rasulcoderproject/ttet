@@ -78,20 +78,24 @@ module.exports = async (req, res) => {
       const { name, age } = feedbackSession;
       delete sessions[chat_id];
 
-      try {
-        await transporter.sendMail({
-        from: `"Feedback Bot" <${process.env.FEEDBACK_EMAIL}>`,
-        to: process.env.FEEDBACK_RECEIVER || process.env.FEEDBACK_EMAIL,
-        subject: `Комментарий от ${name} (${age} лет) — Telegram ID: ${chat_id}`,
-        text: `Имя: ${name}\nВозраст: ${age}\nID чата: ${chat_id}\n\nКомментарий:\n${comment}`
-        });
+    try {
+  await transporter.sendMail({
+    from: `"Feedback Bot" <${process.env.FEEDBACK_EMAIL}>`,
+    to: process.env.FEEDBACK_RECEIVER || process.env.FEEDBACK_EMAIL,
+    subject: `Комментарий от ${name} (${age} лет) — Telegram ID: ${chat_id}`,
+    text: `Имя: ${name}\nВозраст: ${age}\nID чата: ${chat_id}\n\nКомментарий:\n${comment}`
+  });
 
-        await sendMessage("✅ Спасибо! Твой комментарий отправлен.");
-      } catch (err) {
-        console.error("Ошибка при отправке письма:", err);
-        await sendMessage("❌ Ошибка при отправке. Попробуй позже.");
-      }
+  await sendMessage("✅ Спасибо! Твой комментарий отправлен.");
+} catch (err) {
+  console.error("❌ Ошибка при отправке письма:", err); // <--- ключевая строка
 
+  try {
+    await sendMessage("❌ Ошибка при отправке. Попробуй позже.");
+  } catch (telegramError) {
+    console.error("❌ Ошибка при отправке сообщения в Telegram:", telegramError);
+  }
+}
       return res.send("OK");
     }
   }
