@@ -21,8 +21,9 @@ module.exports = async (req, res) => {
   const body = req.body;
   const message = body.message;
   const text = message?.text;
-  const session = sessions[chat_id] || {};
+
   const chat_id = message?.chat?.id;
+  const session = sessions[chat_id] || {};
 
   const sendMessage = (text, keyboard) =>
     fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
