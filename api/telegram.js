@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
     return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
       keyboard: [
         [{ text: "История" }, { text: "Математика" }],
-        [{ text: "Английский" }, { text: "Игры 🎲" }]
+        [{ text: "Английский" }, { text: "Игры 🎲" }],
         [{ text: "/form" }, { text: "/stats" }]
         
       ],
@@ -73,93 +73,6 @@ module.exports = async (req, res) => {
 
 
 
-
-
-
-
-if (text === "/form") {
-    sessions[chat_id] = { formStep: "name", formData: {} };
-    await sendMessage("📋 Как тебя зовут?");
-    return res.send("OK");
-  }
-
-  if (session.formStep) {
-    const formData = session.formData || {};
-
-    if (session.formStep === "name") {
-      formData.name = text.trim();
-      session.formStep = "age";
-      await sendMessage("Сколько тебе лет?");
-    } else if (session.formStep === "age") {
-      formData.age = text.trim();
-      session.formStep = "comment";
-      await sendMessage("Оставь комментарий:");
-    } else if (session.formStep === "comment") {
-      formData.comment = text.trim();
-      session.formStep = null;
-
-      const mailText = `📨 Новая анкета:\n\nИмя: ${formData.name}\nВозраст: ${formData.age}\nКомментарий: ${formData.comment}`;
-
-      try {
-        await sendMail({
-          subject: "Новая анкета из Telegram",
-          text: mailText,
-        });
-        await sendMessage("✅ Спасибо! Данные отправлены.");
-      } catch (e) {
-        console.error("Ошибка при отправке письма:", e);
-        await sendMessage("⚠️ Ошибка при отправке письма.");
-      }
-
-      delete sessions[chat_id].formStep;
-      delete sessions[chat_id].formData;
-    }
-
-    return res.send("OK");
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // /start
-  if (text === "/start") {
-    sessions[chat_id] = {};
-    return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
-      keyboard: [
-        [{ text: "История" }, { text: "Математика" }],
-        [{ text: "Английский" }, { text: "Игры 🎲" }]
-        [{ text: "/form" }, { text: "/stats" }]
-        
-      ],
-      resize_keyboard: true,
-    }).then(() => res.send("OK"));
-  }
-
-  // /stats - показать статистику
-  if (text === "/stats") {
-    const userStats = stats[chat_id];
-    if (!userStats) {
-      await sendMessage("Ты ещё не играл ни в одну игру.");
-      return res.send("OK");
-    }
-
-    let msg = "📊 Твоя статистика:\n\n";
-    for (const game in userStats) {
-      const s = userStats[game];
-      msg += `• ${game}: сыграно ${s.played}, побед ${s.wins}\n`;
-    }
-    await sendMessage(msg);
-    return res.send("OK");
-  }
 
 
 
