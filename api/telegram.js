@@ -32,6 +32,56 @@ module.exports = async (req, res) => {
     if (win) stats[chat_id][game].wins++;
   }
 
+
+
+  // ========== АНКЕТА ==========
+  if (text === "/form") {
+    sessions[chat_id] = { formStep: "name", formData: {} };
+    await sendMessage("📋 Как тебя зовут?");
+    return res.send("OK");
+  }
+
+  if (session.formStep) {
+    const formData = session.formData || {};
+
+    if (session.formStep === "name") {
+      formData.name = text.trim();
+      session.formStep = "age";
+      await sendMessage("Сколько тебе лет?");
+    } else if (session.formStep === "age") {
+      formData.age = text.trim();
+      session.formStep = "comment";
+      await sendMessage("Оставь комментарий:");
+    } else if (session.formStep === "comment") {
+      formData.comment = text.trim();
+      session.formStep = null;
+
+      const mailText = `📨 Новая анкета:\n\nИмя: ${formData.name}\nВозраст: ${formData.age}\nКомментарий: ${formData.comment}`;
+
+      try {
+        await sendMail({
+          subject: "Новая анкета из Telegram",
+          text: mailText,
+        });
+        await sendMessage("✅ Спасибо! Данные отправлены.");
+      } catch (e) {
+        console.error("Ошибка при отправке письма:", e);
+        await sendMessage("⚠️ Ошибка при отправке письма.");
+      }
+
+      delete sessions[chat_id].formStep;
+      delete sessions[chat_id].formData;
+    }
+
+    return res.send("OK");
+  }
+
+
+
+
+
+
+
   // /start
   if (text === "/start") {
     sessions[chat_id] = {};
