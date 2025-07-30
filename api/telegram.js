@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
       body: JSON.stringify({ chat_id, text, reply_markup: keyboard }),
     });
 
-  
+ const session = sessions[chat_id] || {};
 
   // Функция обновления статистики
   function updateStats(chat_id, game, win) {
@@ -32,7 +32,7 @@ module.exports = async (req, res) => {
     if (win) stats[chat_id][game].wins++;
   }
 
-  const session = sessions[chat_id] || {};
+
 
   // ===== Обработка комментария с именем и возрастом =====
   if (text === "Оставить комментарий" || text === "/feedback") {
