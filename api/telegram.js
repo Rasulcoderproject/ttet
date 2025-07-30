@@ -6,11 +6,6 @@ const stats = {}; // Статистика по пользователям
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
-const EMAIL_USER = process.env.EMAIL_USER;
-const EMAIL_PASS = process.env.EMAIL_PASS;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-
-
 module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
@@ -37,18 +32,13 @@ module.exports = async (req, res) => {
     if (win) stats[chat_id][game].wins++;
   }
 
-
-
-
   // /start
   if (text === "/start") {
     sessions[chat_id] = {};
     return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
       keyboard: [
         [{ text: "История" }, { text: "Математика" }],
-        [{ text: "Английский" }, { text: "Игры 🎲" }],
-        [{ text: "/form" }, { text: "/stats" }]
-        
+        [{ text: "Английский" }, { text: "Игры 🎲" }]
       ],
       resize_keyboard: true,
     }).then(() => res.send("OK"));
@@ -70,44 +60,6 @@ module.exports = async (req, res) => {
     await sendMessage(msg);
     return res.send("OK");
   }
-
-
-
-
-
-
-
-
-// 📬 Отправка письма
-async function sendMail({ subject, text }) {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS,
-    },
-  });
-
-  return transporter.sendMail({
-    from: EMAIL_USER,
-    to: ADMIN_EMAIL,
-    subject,
-    text,
-  });
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   // Игры меню
   if (text === "Игры 🎲") {
