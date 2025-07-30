@@ -34,6 +34,26 @@ module.exports = async (req, res) => {
 
 
 
+
+
+
+
+  // /start
+  if (text === "/start") {
+    sessions[chat_id] = {};
+    return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
+      keyboard: [
+        [{ text: "История" }, { text: "Математика" }],
+        [{ text: "Английский" }, { text: "Игры 🎲" }],
+        [{ text: "/form" }, { text: "/stats" }]
+      ],
+      resize_keyboard: true,
+    }).then(() => res.send("OK"));
+  }
+
+
+
+
   // ========== АНКЕТА ==========
   if (text === "/form") {
     sessions[chat_id] = { formStep: "name", formData: {} };
@@ -78,22 +98,6 @@ module.exports = async (req, res) => {
 
 
 
-
-
-
-
-  // /start
-  if (text === "/start") {
-    sessions[chat_id] = {};
-    return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
-      keyboard: [
-        [{ text: "История" }, { text: "Математика" }],
-        [{ text: "Английский" }, { text: "Игры 🎲" }],
-        [{ text: "/form" }, { text: "/stats" }]
-      ],
-      resize_keyboard: true,
-    }).then(() => res.send("OK"));
-  }
 
   // /stats - показать статистику
   if (text === "/stats") {
