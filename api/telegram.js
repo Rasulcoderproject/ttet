@@ -6,6 +6,11 @@ const stats = {}; // Статистика по пользователям
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
@@ -32,13 +37,74 @@ module.exports = async (req, res) => {
     if (win) stats[chat_id][game].wins++;
   }
 
+
+
+
+
+
+
+if (text === "/form") {
+    sessions[chat_id] = { formStep: "name", formData: {} };
+    await sendMessage("📋 Как тебя зовут?");
+    return res.send("OK");
+  }
+
+  if (session.formStep) {
+    const formData = session.formData || {};
+
+    if (session.formStep === "name") {
+      formData.name = text.trim();
+      session.formStep = "age";
+      await sendMessage("Сколько тебе лет?");
+    } else if (session.formStep === "age") {
+      formData.age = text.trim();
+      session.formStep = "comment";
+      await sendMessage("Оставь комментарий:");
+    } else if (session.formStep === "comment") {
+      formData.comment = text.trim();
+      session.formStep = null;
+
+      const mailText = `📨 Новая анкета:\n\nИмя: ${formData.name}\nВозраст: ${formData.age}\nКомментарий: ${formData.comment}`;
+
+      try {
+        await sendMail({
+          subject: "Новая анкета из Telegram",
+          text: mailText,
+        });
+        await sendMessage("✅ Спасибо! Данные отправлены.");
+      } catch (e) {
+        console.error("Ошибка при отправке письма:", e);
+        await sendMessage("⚠️ Ошибка при отправке письма.");
+      }
+
+      delete sessions[chat_id].formStep;
+      delete sessions[chat_id].formData;
+    }
+
+    return res.send("OK");
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
   // /start
   if (text === "/start") {
     sessions[chat_id] = {};
     return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
       keyboard: [
         [{ text: "История" }, { text: "Математика" }],
-        [{ text: "Английский" }, { text: "Игры 🎲" },{ text: "/stats" }]
+        [{ text: "Английский" }, { text: "Игры 🎲" }]
+        [{ text: "/form" }, { text: "/stats" }]
+        
       ],
       resize_keyboard: true,
     }).then(() => res.send("OK"));
@@ -60,6 +126,41 @@ module.exports = async (req, res) => {
     await sendMessage(msg);
     return res.send("OK");
   }
+
+
+
+
+
+// 📬 Отправка письма
+async function sendMail({ subject, text }) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: EMAIL_USER,
+      pass: EMAIL_PASS,
+    },
+  });
+
+  return transporter.sendMail({
+    from: EMAIL_USER,
+    to: ADMIN_EMAIL,
+    subject,
+    text,
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // Игры меню
   if (text === "Игры 🎲") {
