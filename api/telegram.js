@@ -58,7 +58,7 @@ module.exports = async (req, res) => {
       await sendMessage("Оставь комментарий:");
     } else if (session.formStep === "comment") {
       formData.comment = text.trim();
-      session.formStep = false;
+      
 
       const mailText = `📨 Новая анкета:\n\nИмя: ${formData.name}\nВозраст: ${formData.age}\nКомментарий: ${formData.comment}`;
 
