@@ -22,8 +22,6 @@ module.exports = async (req, res) => {
     });
 
   const session = sessions[chat_id] || {};
-  sessions[chat_id] = session;
-  
 
   // Функция обновления статистики
   function updateStats(chat_id, game, win) {
@@ -34,77 +32,17 @@ module.exports = async (req, res) => {
     if (win) stats[chat_id][game].wins++;
   }
 
-
- 
-
- if (text === "Анкета 📝") {
-    session.step = "name";
-    session.data = {};
-    await sendMessage("Как тебя зовут?");
-    return res.end("OK");
-  }
-
-  // ==== Обработка шагов ====
-  if (session.step === "name") {
-    session.data.name = text;
-    session.step = "age";
-    await sendMessage("Сколько тебе лет?");
-    return res.end("OK");
-  }
-
-  if (session.step === "age") {
-    session.data.age = text;
-    session.step = "comment";
-    await sendMessage("Оставь комментарий:");
-    return res.end("OK");
-  }
-
-  if (session.step === "comment") {
-    session.data.comment = text;
-    session.step = null;
-
-    const { name, age, comment } = session.data;
-    const emailText = `Имя: ${name}\nВозраст: ${age}\nКомментарий: ${comment}`;
-
-    try {
-      await sendMail({
-        subject: "📨 Новая анкета от Telegram-пользователя",
-        text: emailText,
-      });
-      await sendMessage("✅ Спасибо! Анкета отправлена на почту.");
-    } catch (err) {
-      console.error(err);
-      await sendMessage("⚠️ Ошибка при отправке письма.");
-    }
-
-    delete sessions[chat_id];
-    return res.end("OK");
-  }
-
-  // ==== Неизвестная команда ====
-  await sendMessage("Напиши /start чтобы начать.");
-  return res.end("OK");
-};
-
-
-
   // /start
   if (text === "/start") {
     sessions[chat_id] = {};
     return await sendMessage("👋 Привет! Выбери тему для теста или игру:", {
       keyboard: [
         [{ text: "История" }, { text: "Математика" }],
-        [{ text: "Английский" }, { text: "Игры 🎲" }],
-        [{ text: "/form" }, { text: "/stats" }]
+        [{ text: "Английский" }, { text: "Игры 🎲" }]
       ],
       resize_keyboard: true,
     }).then(() => res.send("OK"));
   }
-
-
-
-
-
 
   // /stats - показать статистику
   if (text === "/stats") {
@@ -134,30 +72,6 @@ module.exports = async (req, res) => {
       resize_keyboard: true,
     }).then(() => res.send("OK"));
   }
-
-
-
-
-// 📬 Отправка письма
-async function sendMail({ subject, text }) {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS,
-    },
-  });
-
-  return transporter.sendMail({
-    from: EMAIL_USER,
-    to: ADMIN_EMAIL,
-    subject,
-    text,
-  });
-}
-
-
-
 
   // Проверка ответа для тестов (История, Математика, Английский)
   if (session.correctAnswer) {
