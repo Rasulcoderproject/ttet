@@ -26,29 +26,14 @@ export default async function handler(req, res) {
     const chatId = update.message.chat.id;
     const text = update.message.text || "";
 
-    // ===== Команда отправки владельцу =====
-    if (text.startsWith("/owner ")) {
-      const messageToOwner = text.slice(7).trim();
-      if (!messageToOwner) {
-        await sendMessage(chatId, "⚠ Напиши текст после команды /owner");
-      } else {
-        await sendMessage(
-          process.env.MY_TELEGRAM_ID,
-          `📩 Сообщение от пользователя ${chatId}:\n${messageToOwner}`
-        );
-        await sendMessage(chatId, "✅ Сообщение отправлено владельцу");
-      }
-      return res.status(200).send("ok");
-    }
-
-    // ===== Ответ владельца пользователю =====
+    // Если сообщение пришло от тебя и начинается с /reply
     if (String(chatId) === process.env.MY_TELEGRAM_ID && text.startsWith("/reply ")) {
       const parts = text.split(" ");
       const targetId = parts[1];
       const replyText = parts.slice(2).join(" ");
 
       if (!targetId || !replyText) {
-        await sendMessage(process.env.MY_TELEGRAM_ID, "⚠ Формат: /reply <chat_id> <текст>");
+        await sendMessage(process.env.MY_TELEGRAM_ID, "⚠ Неверный формат. Пример: /reply 123456 Привет");
       } else {
         await sendMessage(targetId, replyText);
         await sendMessage(process.env.MY_TELEGRAM_ID, `✅ Отправлено пользователю ${targetId}`);
@@ -56,7 +41,11 @@ export default async function handler(req, res) {
       return res.status(200).send("ok");
     }
 
-    // ===== Если команда не owner или reply — просто игнорируем =====
+    // Если сообщение от обычного пользователя — пересылаем тебе
+    await sendMessage(
+      process.env.MY_TELEGRAM_ID,
+      `📨 Сообщение от chat_id: ${chatId}\nТекст: ${text}`
+    );
   }
 
   return res.status(200).send("ok");
