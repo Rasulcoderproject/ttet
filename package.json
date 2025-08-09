@@ -1,9 +1,9 @@
 {
-  "name": "telegram-bot-vercel-nodejs",
+  "name": "telegram-bot-vercel",
   "version": "1.0.0",
+  "type": "module",
   "dependencies": {
-    "node-fetch": "^2.6.1",
-    "cheerio": "^1.0.0-rc.12",
-    "nodemailer": "^6.9.4"
+    "@upstash/redis": "^1.28.3",
+    "node-fetch": "^3.3.2"
   }
 }
