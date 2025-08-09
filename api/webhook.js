@@ -56,11 +56,7 @@ export default async function handler(req, res) {
       return res.status(200).send("ok");
     }
 
-    // ===== Любое другое сообщение от пользователя =====
-    await sendMessage(
-      process.env.MY_TELEGRAM_ID,
-      `📨 Сообщение от chat_id: ${chatId}\nТекст: ${text}`
-    );
+    // ===== Если команда не owner или reply — просто игнорируем =====
   }
 
   return res.status(200).send("ok");
