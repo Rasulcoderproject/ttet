@@ -187,79 +187,6 @@ async function answerCallbackQuery(callback_query_id) {
 
 
 
-  const message = update.message;
-  if (!message) return res.status(200).send("ok");
-
-  const chat_id = String(message.chat.id);
-  const text = message.text || "";
-  const firstName = message.from.first_name || "";
-  const username = message.from.username || "";
-
-  // ====== Если ждём отзыв от пользователя ======
-  if (feedbackSessions[chat_id]) {
-    delete feedbackSessions[chat_id];
-    await sendMessage(
-      OWNER_ID,
-      `💬 Отзыв от ${firstName} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
-    );
-    await sendMessage(chat_id, "✅ Ваш комментарий отправлен владельцу!");
-    return res.status(200).send("ok");
-  }
-
-  // ====== /feedback ======
-  if (text.startsWith("/feedback")) {
-    const feedbackText = text.slice(9).trim();
-    if (feedbackText) {
-      // Если сразу написали текст после команды
-      await sendMessage(
-        OWNER_ID,
-        `💬 Отзыв от ${firstName} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${feedbackText}`
-      );
-      await sendMessage(chat_id, "✅ Ваш комментарий отправлен владельцу!");
-    } else {
-      // Если только команда без текста
-      feedbackSessions[chat_id] = true;
-      await sendMessage(chat_id, "📝 Пожалуйста, введите ваш комментарий одним сообщением:");
-    }
-    return res.status(200).send("ok");
-  }
-
-  // ====== /reply для владельца ======
-  if (chat_id === OWNER_ID && text.startsWith("/reply ")) {
-    const parts = text.split(" ");
-    const targetId = parts[1];
-    const replyText = parts.slice(2).join(" ");
-    if (!targetId || !replyText) {
-      await sendMessage(chat_id, "⚠ Формат: /reply <chat_id> <текст>");
-    } else {
-      await sendMessage(targetId, replyText);
-      await sendMessage(chat_id, `✅ Сообщение отправлено пользователю ${targetId}`);
-    }
-    return res.status(200).send("ok");
-  }
-
-  // ====== Обрабатываем игровую логику ======
-  await processGameLogic(chat_id, text);
-
-  // ====== После обработки — пересылаем копию владельцу ======
-  if (chat_id !== OWNER_ID) {
-    await sendMessage(
-      OWNER_ID,
-      `📨 Сообщение от ${firstName} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
-    );
-  }
-
-  return res.status(200).send("ok");
-}
-
-
-
-
-
-
-
-
-
 
 
 
@@ -287,6 +214,33 @@ async function processGameLogic(chat_id, text) {
     });
     return;
   }
+
+
+ // ===== Когда нажали кнопку Feedback =====
+    if (text === "Feedback") {
+      feedbackSessions[chat_id] = true;
+      await sendMessage(chat_id, "📝 Пожалуйста, введите ваш комментарий одним сообщением:");
+      return res.status(200).send("ok");
+    }
+
+    // ===== Если ждём комментарий =====
+    if (feedbackSessions[chat_id]) {
+      delete feedbackSessions[chat_id];
+      await sendMessage(
+        OWNER_ID,
+        `💬 Отзыв от ${firstName} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
+      );
+      await sendMessage(chat_id, "✅ Ваш комментарий отправлен владельцу!");
+      return res.status(200).send("ok");
+    }
+
+
+
+
+
+
+
+
 
   // /stats - показать статистику
   if (text === "/stats") {
