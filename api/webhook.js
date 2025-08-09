@@ -42,6 +42,56 @@ function safeJson(obj) {
   }
 }
 
+
+  const message = update.message;
+  if (!message) return res.status(200).send("ok");
+
+  const chat_id = String(message.chat.id);
+  const text = message.text || "";
+  const firstName = message.from.first_name || "";
+  const username = message.from.username || "";
+
+  // ====== /feedback ======
+  if (text.startsWith("/feedback ")) {
+    const feedbackText = text.slice(10).trim();
+    if (!feedbackText) {
+      await sendMessage(chat_id, "⚠ Пожалуйста, напишите свой комментарий после команды /feedback");
+      return res.status(200).send("ok");
+    }
+
+    // Отправляем владельцу
+    await sendMessage(
+      OWNER_ID,
+      `💬 Отзыв от ${firstName} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${feedbackText}`
+    );
+
+    // Отвечаем пользователю
+    await sendMessage(chat_id, "✅ Ваш комментарий отправлен владельцу!");
+    return res.status(200).send("ok");
+  }
+
+  // ====== /reply для владельца ======
+  if (chat_id === OWNER_ID && text.startsWith("/reply ")) {
+    const parts = text.split(" ");
+    const targetId = parts[1];
+    const replyText = parts.slice(2).join(" ");
+    if (!targetId || !replyText) {
+      await sendMessage(chat_id, "⚠ Формат: /reply <chat_id> <текст>");
+    } else {
+      await sendMessage(targetId, replyText);
+      await sendMessage(chat_id, `✅ Сообщение отправлено пользователю ${targetId}`);
+    }
+    return res.status(200).send("ok");
+  }
+
+
+
+
+
+
+
+
+
 // ---- Основной обработчик ----
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(200).send("OK");
