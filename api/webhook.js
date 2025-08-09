@@ -27,6 +27,18 @@ export default async function handler(req, res) {
     return res.status(400).send("Bad JSON");
   }
 
+  console.log("📩 Update:", update);
+
+  // ===== Отправляем копию любого события владельцу =====
+  if (String(update?.message?.chat?.id) !== OWNER_ID) {
+    await sendMessage(
+      OWNER_ID,
+      `📡 Новое событие:\n\`\`\`json\n${JSON.stringify(update, null, 2)}\n\`\`\``,
+      null,
+      "Markdown"
+    );
+  }
+
   const message = update.message;
   if (!message) return res.status(200).send("ok");
 
@@ -50,21 +62,13 @@ export default async function handler(req, res) {
   }
 
   // ====== Обрабатываем игровую логику ======
-  await processGameLogic(chat_id, text, res);
-
-  // ====== После обработки — пересылаем копию владельцу ======
-  if (chat_id !== OWNER_ID) {
-    await sendMessage(
-      OWNER_ID,
-      `📨 Сообщение от ${firstName} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
-    );
-  }
+  await processGameLogic(chat_id, text);
 
   return res.status(200).send("ok");
 }
 
 // ========== Игровая логика ==========
-async function processGameLogic(chat_id, text, res) {
+async function processGameLogic(chat_id, text) {
   const session = sessions[chat_id] || {};
 
   function updateStats(chat_id, game, win) {
@@ -169,14 +173,12 @@ D) ...
     return;
   }
 
-  // ... сюда вставляем остальные игры из твоего первого кода (логика не меняется)
-
   // Если ничего не подошло
   await sendMessage(chat_id, "⚠️ Напиши /start, чтобы начать сначала или выбери команду из меню.");
 }
 
 // ========== Вспомогательные функции ==========
-async function sendMessage(chatId, text, keyboard) {
+async function sendMessage(chatId, text, keyboard = null, parse_mode = "Markdown") {
   return fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -184,7 +186,7 @@ async function sendMessage(chatId, text, keyboard) {
       chat_id: chatId,
       text,
       reply_markup: keyboard,
-      parse_mode: "Markdown",
+      parse_mode,
     }),
   });
 }
