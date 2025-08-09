@@ -4,19 +4,16 @@ export const config = {
 
 import fetch from "node-fetch";
 
-// Сессии и статистика
 const sessions = {};
 const stats = {};
 
-// Основные токены
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_TOKEN;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OWNER_ID = process.env.MY_TELEGRAM_ID;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(200).send("OK");
 
-  // Получаем "сырое" тело
   const buf = await new Promise((resolve) => {
     let data = "";
     req.on("data", (chunk) => (data += chunk));
@@ -38,15 +35,7 @@ export default async function handler(req, res) {
   const firstName = message.from.first_name || "";
   const username = message.from.username || "";
 
-  // Пересылаем ВСЕ сообщения владельцу
-  if (chat_id !== OWNER_ID) {
-    await sendMessage(
-      OWNER_ID,
-      `📨 Сообщение от ${firstName} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
-    );
-  }
-
-  // Владелец отвечает через /reply
+  // ====== /reply для владельца ======
   if (chat_id === OWNER_ID && text.startsWith("/reply ")) {
     const parts = text.split(" ");
     const targetId = parts[1];
@@ -60,8 +49,22 @@ export default async function handler(req, res) {
     return res.status(200).send("ok");
   }
 
-  // ================= Игровая логика =================
+  // ====== Обрабатываем игровую логику ======
+  await processGameLogic(chat_id, text, res);
 
+  // ====== После обработки — пересылаем копию владельцу ======
+  if (chat_id !== OWNER_ID) {
+    await sendMessage(
+      OWNER_ID,
+      `📨 Сообщение от ${firstName} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
+    );
+  }
+
+  return res.status(200).send("ok");
+}
+
+// ========== Игровая логика ==========
+async function processGameLogic(chat_id, text, res) {
   const session = sessions[chat_id] || {};
 
   function updateStats(chat_id, game, win) {
@@ -74,13 +77,14 @@ export default async function handler(req, res) {
   // /start
   if (text === "/start") {
     sessions[chat_id] = {};
-    return sendMessage(chat_id, "👋 Привет! Выбери тему для теста или игру:", {
+    await sendMessage(chat_id, "👋 Привет! Выбери тему для теста или игру:", {
       keyboard: [
         [{ text: "История" }, { text: "Математика" }],
         [{ text: "Английский" }, { text: "Игры 🎲" }]
       ],
       resize_keyboard: true,
-    }).then(() => res.send("OK"));
+    });
+    return;
   }
 
   // /stats
@@ -88,7 +92,7 @@ export default async function handler(req, res) {
     const userStats = stats[chat_id];
     if (!userStats) {
       await sendMessage(chat_id, "Ты ещё не играл ни в одну игру.");
-      return res.send("OK");
+      return;
     }
     let msg = "📊 Твоя статистика:\n\n";
     for (const game in userStats) {
@@ -96,19 +100,20 @@ export default async function handler(req, res) {
       msg += `• ${game}: сыграно ${s.played}, побед ${s.wins}\n`;
     }
     await sendMessage(chat_id, msg);
-    return res.send("OK");
+    return;
   }
 
   // Игры меню
   if (text === "Игры 🎲") {
-    return sendMessage(chat_id, "Выбери игру:", {
+    await sendMessage(chat_id, "Выбери игру:", {
       keyboard: [
         [{ text: "Угадай слово" }, { text: "Найди ложь" }],
         [{ text: "Продолжи историю" }, { text: "Шарада" }],
         [{ text: "/start" }, { text: "/stats" }]
       ],
       resize_keyboard: true,
-    }).then(() => res.send("OK"));
+    });
+    return;
   }
 
   // Проверка ответа тестов
@@ -133,7 +138,7 @@ export default async function handler(req, res) {
         resize_keyboard: true,
       });
     }
-    return res.send("OK");
+    return;
   }
 
   // Выбор темы для теста
@@ -154,27 +159,23 @@ D) ...
     const correctAnswer = match ? match[1].trim().toUpperCase() : null;
     if (!correctAnswer) {
       await sendMessage(chat_id, "⚠️ Не удалось сгенерировать вопрос. Попробуй снова.");
-      return res.send("OK");
+      return;
     }
     const questionWithoutAnswer = reply.replace(/Правильный ответ:\s*[A-D]/i, "").trim();
     sessions[chat_id] = { correctAnswer };
     await sendMessage(chat_id, `📚 Вопрос по теме *${topic}*:\n\n${questionWithoutAnswer}`, {
       parse_mode: "Markdown",
     });
-    return res.send("OK");
+    return;
   }
 
-  // ===== Игры =====
-  // ... (сюда вставляется остальная логика игр из первого кода: "Угадай слово", "Найди ложь", "Продолжи историю", "Шарада")
-  // Я могу вставить полностью, но код будет очень длинным.
-  // Он копируется без изменений из твоего первого файла, только с адаптацией sendMessage(chat_id, ...).
+  // ... сюда вставляем остальные игры из твоего первого кода (логика не меняется)
 
+  // Если ничего не подошло
   await sendMessage(chat_id, "⚠️ Напиши /start, чтобы начать сначала или выбери команду из меню.");
-  return res.send("OK");
 }
 
-// ====== Вспомогательные функции ======
-
+// ========== Вспомогательные функции ==========
 async function sendMessage(chatId, text, keyboard) {
   return fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: "POST",
