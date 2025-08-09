@@ -202,6 +202,18 @@ async function processGameLogic(chat_id, text) {
     if (win) stats[localChatId][game].wins++;
   }
 
+
+
+
+
+  if (update.message) {
+    const chat_id = String(update.message.chat.id);
+    const text = update.message.text || "";
+    const firstName = update.message.from.first_name || "";
+    const username = update.message.from.username || "";
+
+
+
   // /start
   if (text === "/start") {
     sessions[chat_id] = {};
@@ -236,8 +248,7 @@ async function processGameLogic(chat_id, text) {
 
 
 
-
-
+ 
 
 
 
