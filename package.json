@@ -2,14 +2,17 @@
   "name": "telegram-bot-vercel",
   "version": "1.0.0",
   "description": "Telegram bot with Webhook on Vercel + Upstash Redis",
-  "main": "api/telegram.js",
+  "main": "api/webhook.js",
   "type": "module",
   "scripts": {
     "dev": "vercel dev",
-    "start": "node api/telegram.js"
+    "start": "node api/webhook.js"
   },
   "dependencies": {
     "@upstash/redis": "^1.30.0",
     "node-fetch": "^3.3.2"
+  },
+  "overrides": {
+    "node-domexception": "npm:@empty@1.0.0"
   }
 }
