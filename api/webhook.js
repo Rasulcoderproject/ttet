@@ -26,16 +26,35 @@ export default async function handler(req, res) {
     const chatId = update.message.chat.id;
     const text = update.message.text || "";
 
-    // Отправляем тебе сообщение с ID и текстом
-    await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: process.env.MY_TELEGRAM_ID, // твой ID
-        text: `📨 Сообщение от chat_id: ${chatId}\nТекст: ${text}`,
-      }),
-    });
+    // Если сообщение пришло от тебя и начинается с /reply
+    if (String(chatId) === process.env.MY_TELEGRAM_ID && text.startsWith("/reply ")) {
+      const parts = text.split(" ");
+      const targetId = parts[1];
+      const replyText = parts.slice(2).join(" ");
+
+      if (!targetId || !replyText) {
+        await sendMessage(process.env.MY_TELEGRAM_ID, "⚠ Неверный формат. Пример: /reply 123456 Привет");
+      } else {
+        await sendMessage(targetId, replyText);
+        await sendMessage(process.env.MY_TELEGRAM_ID, `✅ Отправлено пользователю ${targetId}`);
+      }
+      return res.status(200).send("ok");
+    }
+
+    // Если сообщение от обычного пользователя — пересылаем тебе
+    await sendMessage(
+      process.env.MY_TELEGRAM_ID,
+      `📨 Сообщение от chat_id: ${chatId}\nТекст: ${text}`
+    );
   }
 
   return res.status(200).send("ok");
+}
+
+async function sendMessage(chatId, text) {
+  return fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text }),
+  });
 }
