@@ -23,34 +23,39 @@ export default async function handler(req, res) {
   console.log("📩 Update:", update);
 
   if (update.message) {
-    const chatId = update.message.chat.id;
+    const chatId = String(update.message.chat.id);
     const text = update.message.text || "";
+    const firstName = update.message.from.first_name || "";
+    const username = update.message.from.username || "";
 
-    // Если сообщение пришло от тебя и начинается с /reply
-    if (String(chatId) === process.env.MY_TELEGRAM_ID && text.startsWith("/reply ")) {
+    // Команда /reply — только для владельца
+    if (chatId === process.env.MY_TELEGRAM_ID && text.startsWith("/reply ")) {
       const parts = text.split(" ");
       const targetId = parts[1];
       const replyText = parts.slice(2).join(" ");
 
       if (!targetId || !replyText) {
-        await sendMessage(process.env.MY_TELEGRAM_ID, "⚠ Неверный формат. Пример: /reply 123456 Привет");
+        await sendMessage(chatId, "⚠ Формат: /reply <chat_id> <текст>");
       } else {
         await sendMessage(targetId, replyText);
-        await sendMessage(process.env.MY_TELEGRAM_ID, `✅ Отправлено пользователю ${targetId}`);
+        await sendMessage(chatId, `✅ Сообщение отправлено пользователю ${targetId}`);
       }
       return res.status(200).send("ok");
     }
 
-    // Если сообщение от обычного пользователя — пересылаем тебе
-    await sendMessage(
-      process.env.MY_TELEGRAM_ID,
-      `📨 Сообщение от chat_id: ${chatId}\nТекст: ${text}`
-    );
+    // Обычные пользователи → пересылаем владельцу
+    if (chatId !== process.env.MY_TELEGRAM_ID) {
+      await sendMessage(
+        process.env.MY_TELEGRAM_ID,
+        `📨 Сообщение от ${firstName} (@${username || "нет"})\nID: ${chatId}\nТекст: ${text}`
+      );
+    }
   }
 
   return res.status(200).send("ok");
 }
 
+// Функция отправки сообщений
 async function sendMessage(chatId, text) {
   return fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
     method: "POST",
@@ -58,6 +63,10 @@ async function sendMessage(chatId, text) {
     body: JSON.stringify({ chat_id: chatId, text }),
   });
 }
+
+
+
+
 const fetch = require("node-fetch");
 
 const sessions = {};
