@@ -8,6 +8,8 @@ import fetch from "node-fetch";
 // --- В памяти ---
 const sessions = {};
 const stats = {};
+const feedbackSessions = {};
+
 
 // --- Переменные окружения (обязательно установить на Vercel) ---
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_TOKEN;
@@ -203,17 +205,28 @@ async function processGameLogic(chat_id, text) {
   }
 
 
+  // Feedback кнопка
+  if (text === "Feedback") {
+    feedbackSessions[chat_id] = true;
+    await sendMessage(chat_id, "📝 Пожалуйста, введите ваш комментарий одним сообщением:");
+    return;
+  }
+
+  // Приём отзыва
+  if (feedbackSessions[chat_id]) {
+    delete feedbackSessions[chat_id];
+    const { firstName, username } = sessions[chat_id] || {};
+    await sendMessage(
+      OWNER_ID,
+      `💬 Отзыв от ${firstName || "Без имени"} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
+    );
+    await sendMessage(chat_id, "✅ Ваш комментарий отправлен владельцу!");
+    return;
+  }
 
 
 
-  if (update.message) {
-    const chat_id = String(update.message.chat.id);
-    const text = update.message.text || "";
-    const firstName = update.message.from.first_name || "";
-    const username = update.message.from.username || "";
-
-
-
+  
   // /start
   if (text === "/start") {
     sessions[chat_id] = {};
@@ -228,31 +241,8 @@ async function processGameLogic(chat_id, text) {
   }
 
 
- // ===== Когда нажали кнопку Feedback =====
-    if (text === "Feedback") {
-      feedbackSessions[chat_id] = true;
-      await sendMessage(chat_id, "📝 Пожалуйста, введите ваш комментарий одним сообщением:");
-      return res.status(200).send("ok");
-    }
-
-    // ===== Если ждём комментарий =====
-    if (feedbackSessions[chat_id]) {
-      delete feedbackSessions[chat_id];
-      await sendMessage(
-        OWNER_ID,
-        `💬 Отзыв от ${firstName} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
-      );
-      await sendMessage(chat_id, "✅ Ваш комментарий отправлен владельцу!");
-      return res.status(200).send("ok");
-    }
-
-
-
- 
-
-
-
-
+  
+  
   // /stats - показать статистику
   if (text === "/stats") {
     const userStats = stats[chat_id];
