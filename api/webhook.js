@@ -3,13 +3,6 @@ export const config = {
 };
 
 import fetch from "node-fetch";
-import { Redis } from "@upstash/redis";
-
-// Подключение к Upstash Redis
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL, // https://...upstash.io
-  token: process.env.UPSTASH_REDIS_REST_TOKEN, // токен из Upstash
-});
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(200).send("OK");
@@ -35,30 +28,7 @@ export default async function handler(req, res) {
     const firstName = update.message.from.first_name || "";
     const username = update.message.from.username || "";
 
-    // Сохраняем пользователя в Redis
-    await redis.hset(`user:${chatId}`, {
-      firstName,
-      username,
-    });
-
-    // /list — только для владельца
-    if (chatId === process.env.MY_TELEGRAM_ID && text === "/list") {
-      const keys = await redis.keys("user:*");
-      if (!keys.length) {
-        await sendMessage(chatId, "📋 Список пуст.");
-        return res.status(200).send("ok");
-      }
-      let list = "";
-      for (const key of keys) {
-        const id = key.split(":")[1];
-        const user = await redis.hgetall(key);
-        list += `${id} — ${user.firstName} (@${user.username || "нет"})\n`;
-      }
-      await sendMessage(chatId, `📋 Список пользователей:\n${list}`);
-      return res.status(200).send("ok");
-    }
-
-    // /reply <id> <текст> — только для владельца
+    // Только владелец может использовать /reply
     if (chatId === process.env.MY_TELEGRAM_ID && text.startsWith("/reply ")) {
       const parts = text.split(" ");
       const targetId = parts[1];
@@ -73,7 +43,7 @@ export default async function handler(req, res) {
       return res.status(200).send("ok");
     }
 
-    // Если пишет обычный пользователь — пересылаем владельцу
+    // Любое сообщение от пользователя пересылается владельцу
     if (chatId !== process.env.MY_TELEGRAM_ID) {
       await sendMessage(
         process.env.MY_TELEGRAM_ID,
@@ -85,7 +55,7 @@ export default async function handler(req, res) {
   return res.status(200).send("ok");
 }
 
-// Функция отправки сообщений
+// Функция отправки сообщения
 async function sendMessage(chatId, text) {
   return fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
     method: "POST",
