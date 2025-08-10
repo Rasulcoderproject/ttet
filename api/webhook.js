@@ -206,7 +206,7 @@ async function processGameLogic(chat_id, text) {
 
 
   // Feedback кнопка
-  if (text === "Feedback") {
+  if (text === "feedback") {
     feedbackSessions[chat_id] = true;
     await sendMessage(chat_id, "📝 Пожалуйста, введите ваш комментарий одним сообщением:");
     return;
@@ -229,8 +229,8 @@ async function processGameLogic(chat_id, text) {
   
   // /start
   if (text === "/start") {
-    sessions[chat_id] = {};
-    await sendMessage(chat_id, "👋 Привет! Выбери тему для теста или игру:", {
+    sessions[chat_id] = {firstName};
+    await sendMessage(chat_id, `👋 Привет, ${firstName}! Выбери тему для теста или игру:`, {
       keyboard: [
         [{ text: "История" }, { text: "Математика" }],
         [{ text: "Английский" }, { text: "Игры 🎲" }],
