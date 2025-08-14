@@ -12,7 +12,7 @@ const feedbackSessions = {};
 
 
 // --- Переменные окружения (обязательно установить на Vercel) ---
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_TOKEN;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "";
 const OWNER_ID = String(process.env.MY_TELEGRAM_ID || "");
 
@@ -133,7 +133,6 @@ export default async function handler(req, res) {
     }
   }
 
-
   if (chatId) {
     const chat_id_str = String(chatId);
     const text =
@@ -152,9 +151,6 @@ export default async function handler(req, res) {
 
   return res.status(200).send("ok");
 }
-
-
-
 
 // ---- sendMessage wrapper ----
 async function sendMessage(chatId, text, reply_markup = null, parse_mode = "Markdown") {
@@ -210,7 +206,7 @@ async function processGameLogic(chat_id, text) {
 
 
   // Feedback кнопка
-  if (text === "feedback") {
+  if (text === "/feedback") {
     feedbackSessions[chat_id] = true;
     await sendMessage(chat_id, "📝 Пожалуйста, введите ваш комментарий одним сообщением:");
     return;
@@ -223,29 +219,40 @@ async function processGameLogic(chat_id, text) {
     await sendMessage(
       OWNER_ID,
       `💬 Отзыв от ${firstName || "Без имени"} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
+      
     );
-    await sendMessage(chat_id, "✅ Ваш комментарий отправлен владельцу!");
+
+
+
+    await sendMessage(
+      OWNER_ID,
+      `/reply ${chat_id}`
+      
+    );
+
+    await sendMessage(chat_id, "✅ Ваш комментарий отправлен скоро с вами свяжется!");
     return;
   }
 
 
 
-
-  
   // /start
   if (text === "/start") {
+
+ 
+    sessions[chat_id] = {};
     
-    await sendMessage(chat_id, `👋 Привет, ${firstName}! Выбери тему для теста или игру:`, {
+    await sendMessage(chat_id, `👋 Привет! Выбери тему для теста или игру:`, {
       keyboard: [
         [{ text: "История" }, { text: "Математика" }],
         [{ text: "Английский" }, { text: "Игры 🎲" }],
+        [{ text: "/feedback" }]
+        
       ],
       resize_keyboard: true,
     });
     return;
   }
-
-
 
 
   
