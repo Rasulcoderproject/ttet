@@ -125,9 +125,9 @@ export default async function handler(req, res) {
 
   // Если есть callback_query — ответим на неё чтобы убрать "крутилку"
   if (update.callback_query) {
-    const chid = update.callback_query.id;
+    const cqid = update.callback_query.id;
     try {
-      await answerCallbackQuery(chid);
+      await answerCallbackQuery(cqid);
     } catch (e) {
       // игнорируем ошибку
     }
@@ -236,35 +236,6 @@ async function processGameLogic(chat_id, text) {
 
 
 
-if (text === "/contact") {
-  await sendMessage(chat_id, "📱 Пожалуйста, поделитесь своим номером телефона:", {
-    keyboard: [
-      [{ text: "📤 Поделиться контактом", request_contact: true }],
-      [{ text: "/start" }]
-    ],
-    resize_keyboard: true,
-    one_time_keyboard: true
-  });
-  return;
-}
-
-// Приём контакта
-if (update?.message?.contact) {
-  const contact = update.message.contact;
-  await sendMessage(chat_id, `✅ Спасибо! Мы получили ваш контакт:\nИмя: ${contact.first_name}\nТелефон: ${contact.phone_number}`);
-
-  // Отправим владельцу
-  await sendMessage(
-    OWNER_ID,
-    `📞 Новый контакт:\nИмя: ${contact.first_name} ${contact.last_name || ""}\nТелефон: ${contact.phone_number}\nID: ${contact.user_id || chat_id}`
-  );
-  return;
-}
-
-
-
-
-
   // /start
   if (text === "/start") {
 
@@ -315,13 +286,6 @@ if (update?.message?.contact) {
     });
     return;
   }
-
-
-
-
-
-
-
 
   // Проверка ответа для тестов (История, Математика, Английский)
   if (session.correctAnswer) {
