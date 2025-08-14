@@ -205,10 +205,16 @@ async function processGameLogic(chat_id, text) {
     stats[localChatId][game].played++;
     if (win) stats[localChatId][game].wins++;
   }
-
-   // === 1. Приём контакта ===
+ // === Приём контакта ===
   if (update?.message?.contact) {
     const contact = update.message.contact;
+
+    saveContact({
+      first_name: contact.first_name,
+      last_name: contact.last_name || "",
+      phone_number: contact.phone_number,
+      user_id: contact.user_id || chat_id
+    });
 
     await sendMessage(chat_id, `✅ Спасибо! Мы получили ваш контакт:
 Имя: ${contact.first_name}
@@ -221,11 +227,10 @@ async function processGameLogic(chat_id, text) {
 Телефон: ${contact.phone_number}
 ID: ${contact.user_id || chat_id}`
     );
-
     return;
   }
 
-  // === 2. Запрос контакта ===
+  // === Запрос контакта ===
   if (text === "/contact") {
     await sendMessage(chat_id, "📱 Пожалуйста, поделитесь своим номером телефона:", {
       keyboard: [
@@ -237,7 +242,6 @@ ID: ${contact.user_id || chat_id}`
     });
     return;
   }
-
 
 
   // Feedback кнопка
