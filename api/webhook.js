@@ -234,7 +234,7 @@ if (text === "/contact") {
       
     );
 
-    await sendMessage(chat_id, "✅ Ваш конткакт, получен!");
+    await sendMessage(chat_id, "✅ Ваш конткакт, !");
     return;
   }
 
@@ -276,29 +276,21 @@ if (text === "/contact") {
 
   // /start
   if (text === "/start") {
-    
 
+ 
     sessions[chat_id] = {};
-
+    
     await sendMessage(chat_id, `👋 Привет! Выбери тему для теста или игру:`, {
-        reply_markup: {
-            keyboard: [
-                [{ text: "История" }, { text: "Математика" }],
-                [{ text: "Английский" }, { text: "Игры 🎲" }],
-                [
-                    { text: "/feedback" },
-                    { text: "📤 Поделиться контактом", request_contact: true }
-                ]
-            ],
-            resize_keyboard: true,
-            one_time_keyboard: false
-        }
+      keyboard: [
+        [{ text: "История" }, { text: "Математика" }],
+        [{ text: "Английский" }, { text: "Игры 🎲" }],
+        [{ text: "/feedback" }, { text: "📤 Поделиться контактом", request_contact: true }]
+        
+      ],
+      resize_keyboard: true,
     });
     return;
-
-
-  
-}
+  }
 
 
   if (msg.contact) {
