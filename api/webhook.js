@@ -272,41 +272,53 @@ if (text === "/contact") {
     return;
   }
 
+function handleUpdate(update) {
+    if (!update.message) return;
+    const msg = update.message;
+    const chat_id = msg.chat.id;
+    const text = msg.text;
 
-
-  // /start
-  if (text === "/start") {
-
- 
-    sessions[chat_id] = {};
-    
-    await sendMessage(chat_id, `👋 Привет! Выбери тему для теста или игру:`, {
-      keyboard: [
-        [{ text: "История" }, { text: "Математика" }],
-        [{ text: "Английский" }, { text: "Игры 🎲" }],
-        [{ text: "/feedback" }, { text: "📤 Поделиться контактом", request_contact: true }]
-        
-      ],
-      resize_keyboard: true,
-    });
-    return;
-  }
-
-
-  if (msg.contact) {
-    const phone = msg.contact.phone_number;
-    const name = msg.contact.first_name;
-
-    console.log(`📱 Получен контакт: ${name} — ${phone}`);
-    await sendMessage(chat_id, `Спасибо! Я получил твой номер: ${phone}`);
-}
-  if (text === "📤 Поделиться контактом") {
-
-
-      await sendMessage(chat_id, "Получен");
-      return;
+    // 1. /start
+    if (text === '/start') {
+        sessions[chat_id] = {};
+        sendMessage(chat_id, '📤 Отправьте ваш номер телефона, чтобы продолжить:', {
+            keyboard: [
+                [{ text: '📤 Поделиться контактом', request_contact: true }]
+            ],
+            resize_keyboard: true,
+            one_time_keyboard: true
+        });
+        return;
     }
-  
+
+    // 2. Получен контакт
+    if (msg.contact) {
+        const phone = msg.contact.phone_number;
+        const name = msg.contact.first_name;
+
+        console.log(`📱 Получен контакт: ${name} — ${phone}`);
+        sendMessage(chat_id, `Спасибо, ${name}! Я получил твой номер: ${phone}`);
+
+        // Меню
+        sendMessage(chat_id, '👋 Выбери тему для теста или игру:', {
+            keyboard: [
+                [{ text: 'История' }, { text: 'Математика' }],
+                [{ text: 'Английский' }, { text: 'Игры 🎲' }],
+                [{ text: '/feedback' }]
+            ],
+            resize_keyboard: true,
+            one_time_keyboard: false
+        });
+        return;
+    }
+
+    // 3. Пример обработки кнопок
+    if (text === 'История') sendMessage(chat_id, '📚 Вопрос по истории...');
+    if (text === 'Математика') sendMessage(chat_id, '➗ Вопрос по математике...');
+    if (text === 'Английский') sendMessage(chat_id, '📝 Вопрос по английскому...');
+    if (text === 'Игры 🎲') sendMessage(chat_id, '🎯 Запускаем игру...');
+}
+
   
   // /stats - показать статистику
   if (text === "/stats") {
