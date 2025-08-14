@@ -275,7 +275,8 @@ if (text === "/contact") {
 
 
   // /start
-if (text === "/start") {
+  if (text === "/start") {
+    
 
     sessions[chat_id] = {};
 
@@ -294,6 +295,18 @@ if (text === "/start") {
         }
     });
     return;
+
+
+  
+}
+
+
+  if (msg.contact) {
+    const phone = msg.contact.phone_number;
+    const name = msg.contact.first_name;
+
+    console.log(`📱 Получен контакт: ${name} — ${phone}`);
+    await sendMessage(chat_id, `Спасибо! Я получил твой номер: ${phone}`);
 }
   if (text === "📤 Поделиться контактом") {
 
