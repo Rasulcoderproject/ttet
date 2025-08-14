@@ -207,14 +207,18 @@ async function processGameLogic(chat_id, text) {
     if (win) stats[localChatId][game].wins++;
   }
 
-
-  // === Запрос контакта ===
-  if (text === "/contact") {
-    
-    sessions[chat_id] = true;
-    await sendMessage(chat_id, "📱 Пожалуйста, поделитесь своим номером телефона:")
-    return;
-  }
+// === Запрос контакта ===
+if (text === "/contact") {
+  await sendMessage(chat_id, "📱 Пожалуйста, поделитесь своим номером телефона:", {
+    keyboard: [
+      [{ text: "📤 Поделиться контактом", request_contact: true }],
+      [{ text: "/start" }]
+    ],
+    resize_keyboard: true,
+    one_time_keyboard: true
+  });
+  return;
+}
 
 
 
