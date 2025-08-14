@@ -220,7 +220,7 @@ async function processGameLogic(chat_id, text) {
 
   // Приём отзыва
   if (sessions[chat_id]) {
-    
+    delete sessions[chat_id];
     const { firstName, username } = sessions[chat_id] || {};
     await sendMessage(
       OWNER_ID,
