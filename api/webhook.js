@@ -12,7 +12,7 @@ const feedbackSessions = {};
 
 
 // --- Переменные окружения (обязательно установить на Vercel) ---
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_TOKEN;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "";
 const OWNER_ID = String(process.env.MY_TELEGRAM_ID || "");
 
@@ -125,9 +125,9 @@ export default async function handler(req, res) {
 
   // Если есть callback_query — ответим на неё чтобы убрать "крутилку"
   if (update.callback_query) {
-    const cqid = update.callback_query.id;
+    const chid = update.callback_query.id;
     try {
-      await answerCallbackQuery(cqid);
+      await answerCallbackQuery(chid);
     } catch (e) {
       // игнорируем ошибку
     }
@@ -235,6 +235,24 @@ async function processGameLogic(chat_id, text) {
   }
 
 
+const message = update.message; // здесь update.message из твоего проекта
+
+if (message) {
+  // Обработка команды /start
+  if (message.text === "/start") {
+    await sendMessage(message.chat.id, "Привет! Нажми кнопку, чтобы отправить контакт.", {
+      reply_markup: {
+        keyboard: [[{ text: "Отправить контакт", request_contact: true }]],
+        resize_keyboard: true,
+        one_time_keyboard: true,
+      },
+    });
+  }
+
+
+
+
+
 
   // /start
   if (text === "/start") {
@@ -286,6 +304,13 @@ async function processGameLogic(chat_id, text) {
     });
     return;
   }
+
+
+
+
+
+
+
 
   // Проверка ответа для тестов (История, Математика, Английский)
   if (session.correctAnswer) {
