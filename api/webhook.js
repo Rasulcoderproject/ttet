@@ -206,13 +206,14 @@ async function processGameLogic(chat_id, text) {
     if (win) stats[localChatId][game].wins++;
   }
 
+   // === 1. Приём контакта ===
   if (update?.message?.contact) {
     const contact = update.message.contact;
-    await sendMessage(chat_id, `✅ Спасибо! Мы получили ваш контакт:
-    Имя: ${contact.first_name}
-    Телефон: ${contact.phone_number}`);
 
-    // Отправим владельцу
+    await sendMessage(chat_id, `✅ Спасибо! Мы получили ваш контакт:
+Имя: ${contact.first_name}
+Телефон: ${contact.phone_number}`);
+
     await sendMessage(
       OWNER_ID,
       `📞 Новый контакт:
@@ -220,6 +221,7 @@ async function processGameLogic(chat_id, text) {
 Телефон: ${contact.phone_number}
 ID: ${contact.user_id || chat_id}`
     );
+
     return;
   }
 
