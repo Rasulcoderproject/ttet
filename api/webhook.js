@@ -7,6 +7,7 @@ import fetch from "node-fetch";
 
 // --- В памяти ---
 const sessions = {};
+const feed = {};
 const stats = {};
 const feedbackSessions = {};
 
@@ -209,7 +210,7 @@ async function processGameLogic(chat_id, text) {
 
 // === Запрос контакта ===
 if (text === "/contact") {
-  sessions[chat_id]= true;
+  feed[chat_id]= true;
   await sendMessage(chat_id, "📱 Пожалуйста, поделитесь своим номером телефона:", {
     keyboard: [
       [{ text: "📤 Поделиться контактом", request_contact: true }],
@@ -224,8 +225,8 @@ if (text === "/contact") {
 
 
   // Приём отзыва
-  if (sessions[chat_id]) {
-    delete sessions[chat_id];
+  if (feed[chat_id]) {
+    delete feed[chat_id];
     const { firstName, username } = sessions[chat_id] || {};
     await sendMessage(
       OWNER_ID,
