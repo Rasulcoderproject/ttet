@@ -229,21 +229,6 @@ async function processGameLogic(chat_id, text) {
   }
 
 
-const message = update.message; // здесь update.message из твоего проекта
-
-
-if (message) {
-  // Обработка команды /start
-  if (message.text === "/exi") {
-    bot.sendMessage(message.chat.id, "Привет! Нажми кнопку, чтобы отправить контакт.", {
-      reply_markup: {
-        keyboard: [[{ text: "Отправить контакт", request_contact: true }]],
-        resize_keyboard: true,
-        one_time_keyboard: true,
-      },
-    });
-  }
-
 
 
   
