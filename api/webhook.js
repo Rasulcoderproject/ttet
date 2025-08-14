@@ -11,6 +11,7 @@ const stats = {};
 const feedbackSessions = {};
 
 
+
 // --- Переменные окружения (обязательно установить на Vercel) ---
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_TOKEN;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "";
@@ -205,43 +206,35 @@ async function processGameLogic(chat_id, text) {
     stats[localChatId][game].played++;
     if (win) stats[localChatId][game].wins++;
   }
- // === Приём контакта ===
-  if (update?.message?.contact) {
-    const contact = update.message.contact;
 
-    saveContact({
-      first_name: contact.first_name,
-      last_name: contact.last_name || "",
-      phone_number: contact.phone_number,
-      user_id: contact.user_id || chat_id
-    });
-
-    await sendMessage(chat_id, `✅ Спасибо! Мы получили ваш контакт:
-Имя: ${contact.first_name}
-Телефон: ${contact.phone_number}`);
-
-    await sendMessage(
-      OWNER_ID,
-      `📞 Новый контакт:
-Имя: ${contact.first_name} ${contact.last_name || ""}
-Телефон: ${contact.phone_number}
-ID: ${contact.user_id || chat_id}`
-    );
-    return;
-  }
 
   // === Запрос контакта ===
   if (text === "/contact") {
-    await sendMessage(chat_id, "📱 Пожалуйста, поделитесь своим номером телефона:", {
-      keyboard: [
-        [{ text: "📤 Поделиться контактом", request_contact: true }],
-        [{ text: "/start" }]
-      ],
-      resize_keyboard: true,
-      one_time_keyboard: true
-    });
+    
+    sessions[chat_id] = true;
+    await sendMessage(chat_id, "📱 Пожалуйста, поделитесь своим номером телефона:")
     return;
   }
+
+
+
+  // Приём отзыва
+  if (sessions[chat_id]) {
+    
+    const { firstName, username } = sessions[chat_id] || {};
+    await sendMessage(
+      OWNER_ID,
+      `💬 Отзыв от ${firstName || "Без имени"} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
+      
+    );
+
+    await sendMessage(chat_id, "✅ Ваш комментарий отправлен скоро с вами свяжется!");
+    return;
+  }
+
+
+
+
 
 
   // Feedback кнопка
