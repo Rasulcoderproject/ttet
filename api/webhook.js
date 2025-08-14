@@ -209,6 +209,7 @@ async function processGameLogic(chat_id, text) {
 
 // === Запрос контакта ===
 if (text === "/contact") {
+  sessions[chat_id]= true;
   await sendMessage(chat_id, "📱 Пожалуйста, поделитесь своим номером телефона:", {
     keyboard: [
       [{ text: "📤 Поделиться контактом", request_contact: true }],
