@@ -234,21 +234,6 @@ if (text === "/contact") {
 
 
 
-  // Приём отзыва
-  if (feed[chat_id]) {
-    delete feed[chat_id];
-    const { firstName, username } = sessions[chat_id] || {};
-    await sendMessage(
-      OWNER_ID,
-      `💬 Отзыв от ${firstName || "Без имени"} (@${username || "нет"})\nID: ${chat_id}\nТекст: ${text}`
-      
-    );
-
-    await sendMessage(chat_id, "✅ Ваш конткакт!");
-    return;
-  }
-
-
 
 
 
