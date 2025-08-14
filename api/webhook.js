@@ -206,14 +206,19 @@ async function processGameLogic(chat_id, text) {
     if (win) stats[localChatId][game].wins++;
   }
 
- if (update?.message?.contact) {
+  if (update?.message?.contact) {
     const contact = update.message.contact;
-    await sendMessage(chat_id, `✅ Спасибо! Мы получили ваш контакт:\nИмя: ${contact.first_name}\nТелефон: ${contact.phone_number}`);
+    await sendMessage(chat_id, `✅ Спасибо! Мы получили ваш контакт:
+    Имя: ${contact.first_name}
+    Телефон: ${contact.phone_number}`);
 
     // Отправим владельцу
     await sendMessage(
       OWNER_ID,
-      `📞 Новый контакт:\nИмя: ${contact.first_name} ${contact.last_name || ""}\nТелефон: ${contact.phone_number}\nID: ${contact.user_id || chat_id}`
+      `📞 Новый контакт:
+Имя: ${contact.first_name} ${contact.last_name || ""}
+Телефон: ${contact.phone_number}
+ID: ${contact.user_id || chat_id}`
     );
     return;
   }
@@ -230,7 +235,6 @@ async function processGameLogic(chat_id, text) {
     });
     return;
   }
-
 
 
 
