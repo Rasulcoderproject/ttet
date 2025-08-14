@@ -193,6 +193,8 @@ async function answerCallbackQuery(callback_query_id) {
 
 
 
+
+
 // ---- Игровая логика (вся, как у тебя) ----
 async function processGameLogic(chat_id, text) {
   const session = sessions[chat_id] || {};
@@ -203,6 +205,33 @@ async function processGameLogic(chat_id, text) {
     stats[localChatId][game].played++;
     if (win) stats[localChatId][game].wins++;
   }
+
+ if (update?.message?.contact) {
+    const contact = update.message.contact;
+    await sendMessage(chat_id, `✅ Спасибо! Мы получили ваш контакт:\nИмя: ${contact.first_name}\nТелефон: ${contact.phone_number}`);
+
+    // Отправим владельцу
+    await sendMessage(
+      OWNER_ID,
+      `📞 Новый контакт:\nИмя: ${contact.first_name} ${contact.last_name || ""}\nТелефон: ${contact.phone_number}\nID: ${contact.user_id || chat_id}`
+    );
+    return;
+  }
+
+  // === 2. Запрос контакта ===
+  if (text === "/contact") {
+    await sendMessage(chat_id, "📱 Пожалуйста, поделитесь своим номером телефона:", {
+      keyboard: [
+        [{ text: "📤 Поделиться контактом", request_contact: true }],
+        [{ text: "/start" }]
+      ],
+      resize_keyboard: true,
+      one_time_keyboard: true
+    });
+    return;
+  }
+
+
 
 
   // Feedback кнопка
