@@ -239,7 +239,7 @@ const message = update.message; // здесь update.message из твоего �
 
 if (message) {
   // Обработка команды /start
-  if (message.text === "/start") {
+  if (message.text === "/star") {
     await sendMessage(message.chat.id, "Привет! Нажми кнопку, чтобы отправить контакт.", {
       reply_markup: {
         keyboard: [[{ text: "Отправить контакт", request_contact: true }]],
