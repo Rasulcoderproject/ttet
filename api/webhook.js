@@ -235,21 +235,32 @@ async function processGameLogic(chat_id, text) {
   }
 
 
-const message = update.message; // здесь update.message из твоего проекта
 
-if (message) {
-  // Обработка команды /start
-  if (message.text === "/star") {
-    await sendMessage(message.chat.id, "Привет! Нажми кнопку, чтобы отправить контакт.", {
-      reply_markup: {
-        keyboard: [[{ text: "Отправить контакт", request_contact: true }]],
-        resize_keyboard: true,
-        one_time_keyboard: true,
-      },
-    });
-  }
-
+if (text === "/contact") {
+  await sendMessage(chat_id, "📱 Пожалуйста, поделитесь своим номером телефона:", {
+    keyboard: [
+      [{ text: "📤 Поделиться контактом", request_contact: true }],
+      [{ text: "/start" }]
+    ],
+    resize_keyboard: true,
+    one_time_keyboard: true
+  });
+  return;
 }
+
+// Приём контакта
+if (update?.message?.contact) {
+  const contact = update.message.contact;
+  await sendMessage(chat_id, `✅ Спасибо! Мы получили ваш контакт:\nИмя: ${contact.first_name}\nТелефон: ${contact.phone_number}`);
+
+  // Отправим владельцу
+  await sendMessage(
+    OWNER_ID,
+    `📞 Новый контакт:\nИмя: ${contact.first_name} ${contact.last_name || ""}\nТелефон: ${contact.phone_number}\nID: ${contact.user_id || chat_id}`
+  );
+  return;
+}
+
 
 
 
