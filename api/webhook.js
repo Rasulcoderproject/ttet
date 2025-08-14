@@ -234,7 +234,7 @@ if (text === "/contact") {
       
     );
 
-    await sendMessage(chat_id, "✅ Ваш комментарий отправлен скоро с вами свяжется!");
+    await sendMessage(chat_id, "✅ Ваш конткакт!");
     return;
   }
 
