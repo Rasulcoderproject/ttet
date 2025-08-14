@@ -284,7 +284,7 @@ if (text === "/contact") {
       keyboard: [
         [{ text: "История" }, { text: "Математика" }],
         [{ text: "Английский" }, { text: "Игры 🎲" }],
-        [{ text: "/feedback" }]
+        [{ text: "/feedback" }, { text: "📤 Поделиться контактом", request_contact: true }]
         
       ],
       resize_keyboard: true,
@@ -292,7 +292,12 @@ if (text === "/contact") {
     return;
   }
 
+  if (text === "📤 Поделиться контактом") {
 
+
+      await sendMessage(chat_id, "Получен");
+      return;
+    }
   
   
   // /stats - показать статистику
@@ -311,6 +316,7 @@ if (text === "/contact") {
     await sendMessage(chat_id, msg);
     return;
   }
+
 
   // Игры меню
   if (text === "Игры 🎲") {
