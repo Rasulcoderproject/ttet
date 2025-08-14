@@ -133,6 +133,7 @@ export default async function handler(req, res) {
     }
   }
 
+
   if (chatId) {
     const chat_id_str = String(chatId);
     const text =
@@ -151,6 +152,9 @@ export default async function handler(req, res) {
 
   return res.status(200).send("ok");
 }
+
+
+
 
 // ---- sendMessage wrapper ----
 async function sendMessage(chatId, text, reply_markup = null, parse_mode = "Markdown") {
@@ -225,6 +229,22 @@ async function processGameLogic(chat_id, text) {
   }
 
 
+const message = update.message; // здесь update.message из твоего проекта
+
+
+if (message) {
+  // Обработка команды /start
+  if (message.text === "/exi") {
+    bot.sendMessage(message.chat.id, "Привет! Нажми кнопку, чтобы отправить контакт.", {
+      reply_markup: {
+        keyboard: [[{ text: "Отправить контакт", request_contact: true }]],
+        resize_keyboard: true,
+        one_time_keyboard: true,
+      },
+    });
+  }
+
+
 
   
   // /start
@@ -239,6 +259,8 @@ async function processGameLogic(chat_id, text) {
     });
     return;
   }
+
+
 
 
   
