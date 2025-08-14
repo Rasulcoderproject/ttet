@@ -137,6 +137,22 @@ export default async function handler(req, res) {
 
   if (chatId) {
     const chat_id_str = String(chatId);
+
+
+    if (update?.message?.contact) {
+      const contact = update.message.contact;
+      await sendMessage(chat_id_str, `✅ Спасибо! Я получил твой номер: ${contact.phone_number}`);
+      await sendMessage(
+      OWNER_ID,
+      `📞 Новый контакт:\nИмя: ${contact.first_name}\nТелефон: ${contact.phone_number}\nID: ${contact.user_id}`
+    );
+    return res.status(200).send("ok");
+  }
+
+
+
+
+
     const text =
       update?.message?.text ??
       update?.edited_message?.text ??
@@ -188,27 +204,10 @@ async function answerCallbackQuery(callback_query_id) {
   }
 }
 
-
-
-
-
-
-
-
-
-
 // ---- Игровая логика (вся, как у тебя) ----
 async function processGameLogic(chat_id, text) {
   const session = sessions[chat_id] || {};
   
-
-  if (update?.message?.contact) {
-  const contact = update.message.contact;
-  await sendMessage(chat_id, `✅ Спасибо! Я получил твой номер: ${contact.phone_number}`);
-  // Можно сохранить в БД или отправить админу
-  await sendMessage(OWNER_ID, `📞 Новый контакт:\nИмя: ${contact.first_name}\nТелефон: ${contact.phone_number}\nID: ${contact.user_id}`);
-  return;
-}
 
 
 
