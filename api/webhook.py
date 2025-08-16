@@ -72,7 +72,7 @@ async def ask_gpt(prompt: str):
         return "Ошибка генерации."
 
 # ---- Основной обработчик ----
-@app.post("/api/telegram")
+@app.post("/api/webhook")
 async def telegram_webhook(req: Request):
     try:
         update = await req.json()
