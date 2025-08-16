@@ -205,6 +205,8 @@ async function processGameLogic(chat_id, text, firstName) {
     return;
   }
 
+  
+
   // Feedback кнопка
   if (text === "/feedback") {
     feedbackSessions[chat_id] = true;
@@ -245,6 +247,29 @@ async function processGameLogic(chat_id, text, firstName) {
     return;
   }
 
+
+
+  if (text === "Назад") {
+    // сохраняем имя в сессию
+    sessions[chat_id] = { firstName };
+
+    await sendMessage(
+      chat_id,
+      `${firstName || "друг"}!, Выбери тему для теста или игру:`,
+      {
+        keyboard: [
+          [{ text: "История" }, { text: "Математика" }],
+          [{ text: "Английский" }, { text: "Игры 🎲" }],
+          [{ text: "/feedback" }, { text: "📤 Поделиться контактом", request_contact: true }],
+        ],
+        resize_keyboard: true,
+      }
+    );
+    return;
+  }
+
+
+
   if (text === "📤 Поделиться контактом") {
     await sendMessage(chat_id, "Получен");
     return;
@@ -272,7 +297,7 @@ async function processGameLogic(chat_id, text, firstName) {
       keyboard: [
         [{ text: "Угадай слово" }, { text: "Найди ложь" }],
         [{ text: "Продолжи историю" }, { text: "Шарада" }],
-        [{ text: "/start" }, { text: "/stats" }],
+        [{ text: "Назад" }, { text: "/stats" }],
       ],
       resize_keyboard: true,
     });
