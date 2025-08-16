@@ -14,7 +14,7 @@ stats = {}
 feedback_sessions = {}
 
 # --- Переменные окружения ---
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM__TOKEN")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OWNER_ID = str(os.getenv("MY_TELEGRAM_ID", ""))
 
